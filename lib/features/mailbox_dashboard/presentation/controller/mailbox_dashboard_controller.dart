@@ -106,6 +106,7 @@ import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/get_sto
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/get_all_local_email_draft_interactor.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/remove_email_drafts_interactor.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/store_email_sort_order_interactor.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/remove_local_email_draft_interactor.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/action/dashboard_action.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/controller/app_grid_dashboard_controller.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/controller/download/download_controller.dart';
@@ -258,6 +259,7 @@ class MailboxDashBoardController extends ReloadableController
   CreateNewEmailRuleFilterInteractor? createNewEmailRuleFilterInteractor;
   SaveLanguageInteractor? saveLanguageInteractor;
   GetAllLocalEmailDraftInteractor? getAllLocalEmailDraftInteractor;
+  RemoveLocalEmailDraftInteractor? removeLocalEmailDraftInteractor;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final selectedMailbox = Rxn<PresentationMailbox>();
@@ -371,6 +373,7 @@ class MailboxDashBoardController extends ReloadableController
       twakeAppManager.setExecutingBeforeReconnect(false);
       isRetryGetPaywallUrl = false;
       getAllLocalEmailDraftInteractor = getBinding<GetAllLocalEmailDraftInteractor>();
+      removeLocalEmailDraftInteractor = getBinding<RemoveLocalEmailDraftInteractor>();
     }
     if (PlatformInfo.isIOS) {
       _registerPendingCurrentEmailIdInNotification();
