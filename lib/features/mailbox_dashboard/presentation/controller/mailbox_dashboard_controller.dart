@@ -40,7 +40,6 @@ import 'package:tmail_ui_user/features/composer/domain/state/get_autocomplete_st
 import 'package:tmail_ui_user/features/composer/domain/state/save_email_as_drafts_state.dart';
 import 'package:tmail_ui_user/features/composer/domain/state/send_email_state.dart';
 import 'package:tmail_ui_user/features/composer/domain/state/update_email_drafts_state.dart';
-import 'package:tmail_ui_user/features/composer/domain/usecases/create_new_and_save_email_to_drafts_interactor.dart';
 import 'package:tmail_ui_user/features/composer/domain/usecases/get_autocomplete_interactor.dart';
 import 'package:tmail_ui_user/features/composer/domain/usecases/send_email_interactor.dart';
 import 'package:tmail_ui_user/features/composer/presentation/extensions/email_action_type_extension.dart';
@@ -105,7 +104,6 @@ import 'package:tmail_ui_user/features/mailbox_dashboard/domain/state/get_all_lo
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/state/remove_email_drafts_state.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/get_stored_email_sort_order_interactor.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/get_all_local_email_draft_interactor.dart';
-import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/remove_all_local_email_draft_interactor.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/remove_email_drafts_interactor.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/store_email_sort_order_interactor.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/action/dashboard_action.dart';
@@ -260,8 +258,6 @@ class MailboxDashBoardController extends ReloadableController
   CreateNewEmailRuleFilterInteractor? createNewEmailRuleFilterInteractor;
   SaveLanguageInteractor? saveLanguageInteractor;
   GetAllLocalEmailDraftInteractor? getAllLocalEmailDraftInteractor;
-  RemoveAllLocalEmailDraftInteractor? removeAllLocalEmailDraftInteractor;
-  CreateNewAndSaveEmailToDraftsInteractor? createNewAndSaveEmailToDraftsInteractor;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final selectedMailbox = Rxn<PresentationMailbox>();
@@ -375,8 +371,6 @@ class MailboxDashBoardController extends ReloadableController
       twakeAppManager.setExecutingBeforeReconnect(false);
       isRetryGetPaywallUrl = false;
       getAllLocalEmailDraftInteractor = getBinding<GetAllLocalEmailDraftInteractor>();
-      removeAllLocalEmailDraftInteractor = getBinding<RemoveAllLocalEmailDraftInteractor>();
-      createNewAndSaveEmailToDraftsInteractor = getBinding<CreateNewAndSaveEmailToDraftsInteractor>();
     }
     if (PlatformInfo.isIOS) {
       _registerPendingCurrentEmailIdInNotification();
@@ -3195,15 +3189,6 @@ class MailboxDashBoardController extends ReloadableController
 
     consumeState(_restoreDeletedMessageInteractor.execute(sessionCurrent!, accountId.value!, restoreDeletedMessageRequest));
     isRecoveringDeletedMessage.value = true;
-  }
-
-  Future<void> removeAllLocalEmailDraft() async {
-    if (accountId.value == null || sessionCurrent == null) return;
-
-    await removeAllLocalEmailDraftInteractor?.execute(
-      accountId.value!,
-      sessionCurrent!.username,
-    );
   }
 
   bool validateSendingEmailFailedWhenNetworkIsLostOnMobile(dynamic failure) {
