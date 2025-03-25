@@ -17,7 +17,9 @@ extension RestoreLocalEmailDraftExtension on MailboxDashBoardController {
   void restoreLocalEmailDraft() {
     if (accountId.value == null ||
         sessionCurrent == null ||
-        getAllLocalEmailDraftInteractor == null) return;
+        getAllLocalEmailDraftInteractor == null) {
+      return;
+    }
 
     consumeState(getAllLocalEmailDraftInteractor!.execute(
       accountId.value!,
@@ -40,10 +42,10 @@ extension RestoreLocalEmailDraftExtension on MailboxDashBoardController {
       PointerInterceptor(
         child: LocalEmailDraftListDialogBuilder(
           accountId: accountId.value,
-          userName: sessionCurrent?.username,
+          session: sessionCurrent,
+          ownEmailAddress: ownEmailAddress.value,
           presentationLocalEmailDrafts: presentationLocalEmailDrafts,
           onEditLocalEmailDraftAction: _editLocalEmailDraft,
-          onSaveAsDraftLocalEmailDraftAction: _saveAsDraftLocalEmailDraft,
         ),
       ),
       barrierColor: AppColor.colorDefaultCupertinoActionSheet,
@@ -55,9 +57,5 @@ extension RestoreLocalEmailDraftExtension on MailboxDashBoardController {
     openComposer(ComposerArguments.fromLocalEmailDraft(
       draftLocal.copyWith(displayMode: ScreenDisplayMode.normal),
     ));
-  }
-
-  void _saveAsDraftLocalEmailDraft(PresentationLocalEmailDraft draftLocal) {
-    popBack();
   }
 }
