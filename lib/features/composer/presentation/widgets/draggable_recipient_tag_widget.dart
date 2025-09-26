@@ -44,11 +44,15 @@ class DraggableRecipientTagWidget extends StatelessWidget {
                 labelFontSize: DraggableRecipientTagWidgetStyle.avatarLabelFontSize,
                 iconSize: DraggableRecipientTagWidgetStyle.avatarIconSize,
               ),
-            Padding(
-              padding: DraggableRecipientTagWidgetStyle.labelPadding,
-              child: DefaultTextStyle(
-                style: DraggableRecipientTagWidgetStyle.labelTextStyle,
-                child: Text(emailAddress.asString()),
+            Flexible(
+              child: Padding(
+                padding: DraggableRecipientTagWidgetStyle.labelPadding,
+                child: DefaultTextStyle(
+                  style: DraggableRecipientTagWidgetStyle.labelTextStyle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  child: Text(emailAddress.asString()),
+                ),
               ),
             ),
             SvgPicture.asset(
