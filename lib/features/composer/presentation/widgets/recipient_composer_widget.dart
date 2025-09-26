@@ -186,6 +186,9 @@ class _RecipientComposerWidgetState extends State<RecipientComposerWidget> {
                           focusNodeKeyboard: widget.focusNodeKeyboard,
                           borderRadius: RecipientComposerWidgetStyle.enableBorderRadius,
                           enableBorderColor: RecipientComposerWidgetStyle.enableBorderColor,
+                          focusedBorderColor: _isDragging
+                              ? RecipientComposerWidgetStyle.enableBorderColor
+                              : null,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.done,
                           debounceDuration: RecipientComposerWidgetStyle.suggestionDebounceDuration,
