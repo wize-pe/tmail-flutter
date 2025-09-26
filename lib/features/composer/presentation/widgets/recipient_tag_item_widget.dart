@@ -145,13 +145,22 @@ class RecipientTagItemWidget extends StatelessWidget {
         filterField: prefix.filterField,
         composerId: composerId,
       ),
-      feedback: DraggableRecipientTagWidget(emailAddress: currentEmailAddress),
+      feedback: DraggableRecipientTagWidget(
+        imagePaths: imagePaths,
+        emailAddress: currentEmailAddress,
+      ),
       childWhenDragging: PlatformInfo.isMobile
         ? Padding(
             padding: const EdgeInsets.only(top: 10),
-            child: DraggableRecipientTagWidget(emailAddress: currentEmailAddress),
+            child: DraggableRecipientTagWidget(
+              imagePaths: imagePaths,
+              emailAddress: currentEmailAddress,
+            ),
           )
-        : DraggableRecipientTagWidget(emailAddress: currentEmailAddress),
+        : DraggableRecipientTagWidget(
+            imagePaths: imagePaths,
+            emailAddress: currentEmailAddress,
+          ),
       child: tagWidget,
     );
 
