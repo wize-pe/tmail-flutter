@@ -101,9 +101,11 @@ import 'package:tmail_ui_user/features/mailbox_dashboard/domain/exceptions/spam_
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/model/spam_report_state.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/state/get_composer_cache_state.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/state/get_stored_email_sort_order_state.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/domain/state/get_text_formatting_menu_state.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/state/remove_email_drafts_state.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/get_composer_cache_on_web_interactor.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/get_stored_email_sort_order_interactor.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/get_text_formatting_menu_state_interactor.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/remove_all_composer_cache_on_web_interactor.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/remove_composer_cache_by_id_on_web_interactor.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/domain/usecases/remove_email_drafts_interactor.dart';
@@ -128,6 +130,7 @@ import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/extensions
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/extensions/set_error_extension.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/extensions/update_current_emails_flags_extension.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/extensions/handle_paywall_extension.dart';
+import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/extensions/update_text_formatting_menu_state_extension.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/extensions/web_auth_redirect_processor_extension.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/model/dashboard_routes.dart';
 import 'package:tmail_ui_user/features/mailbox_dashboard/presentation/model/download/download_task_state.dart';
@@ -262,6 +265,7 @@ class MailboxDashBoardController extends ReloadableController
   GetServerSettingInteractor? getServerSettingInteractor;
   CreateNewEmailRuleFilterInteractor? createNewEmailRuleFilterInteractor;
   SaveLanguageInteractor? saveLanguageInteractor;
+  GetTextFormattingMenuStateInteractor? getTextFormattingMenuStateInteractor;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final selectedMailbox = Rxn<PresentationMailbox>();
@@ -291,6 +295,7 @@ class MailboxDashBoardController extends ReloadableController
   final isDrawerOpened = RxBool(false);
   final isContextMenuOpened = RxBool(false);
   final isPopupMenuOpened = RxBool(false);
+  final isTextFormattingMenuOpened = RxBool(false);
 
   Map<Role, MailboxId> mapDefaultMailboxIdByRole = {};
   Map<MailboxId, PresentationMailbox> mapMailboxById = {};
@@ -377,6 +382,7 @@ class MailboxDashBoardController extends ReloadableController
       listSearchFilterScrollController = ScrollController();
       twakeAppManager.setExecutingBeforeReconnect(false);
       isRetryGetPaywallUrl = false;
+      initialTextFormattingMenuState();
     }
     if (PlatformInfo.isIOS) {
       _registerPendingCurrentEmailIdInNotification();
@@ -508,6 +514,8 @@ class MailboxDashBoardController extends ReloadableController
       setUpDefaultEmailSortOrder(success.emailSortOrderType);
     } else if (success is GetPaywallUrlSuccess) {
       loadPaywallUrlSuccess(success.paywallUrlPattern);
+    } else if (success is GetTextFormattingMenuStateSuccess) {
+      updateTextFormattingMenuState(success.isDisplayed);
     } else {
       super.handleSuccessViewState(success);
     }
@@ -555,6 +563,8 @@ class MailboxDashBoardController extends ReloadableController
       backToHomeScreen();
     } else if (failure is GetPaywallUrlFailure) {
       loadPaywallUrlFailure();
+    } else if (failure is GetTextFormattingMenuStateFailure) {
+      updateTextFormattingMenuState(false);
     } else {
       super.handleFailureViewState(failure);
     }
