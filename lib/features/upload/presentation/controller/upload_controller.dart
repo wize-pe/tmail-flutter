@@ -267,6 +267,12 @@ class UploadController extends BaseController {
       .toList();
   }
 
+  Attachment? getAttachmentByUploadId(UploadTaskId id) {
+    return listUploadAttachments
+        .firstWhereOrNull((fileState) => fileState.uploadTaskId == id)
+        ?.attachment;
+  }
+
   Set<EmailBodyPart>? generateAttachments() {
     if (attachmentsUploaded.isEmpty) {
       return null;

@@ -1,17 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:open_file/open_file.dart' as open_file;
 import 'package:core/core.dart';
-import 'package:core/presentation/utils/html_transformer/text/sanitize_autolink_unescape_html_transformer.dart';
 import 'package:core/presentation/utils/html_transformer/text/new_line_transformer.dart';
-import 'package:core/presentation/utils/html_transformer/text/standardize_html_sanitizing_transformers.dart';
-import 'package:core/utils/html/html_utils.dart';
-import 'package:core/presentation/utils/html_transformer/dom/sanitize_hyper_link_tag_in_html_transformers.dart';
+import 'package:core/presentation/utils/html_transformer/text/sanitize_autolink_unescape_html_transformer.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
@@ -34,18 +29,17 @@ import 'package:jmap_dart_client/jmap/mdn/mdn.dart';
 import 'package:model/email/eml_attachment.dart';
 import 'package:model/error_type_handler/unknown_uri_exception.dart';
 import 'package:model/model.dart';
+import 'package:open_file/open_file.dart' as open_file;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:tmail_ui_user/features/base/base_controller.dart';
 import 'package:tmail_ui_user/features/base/mixin/app_loader_mixin.dart';
 import 'package:tmail_ui_user/features/base/mixin/message_dialog_action_manager.dart';
 import 'package:tmail_ui_user/features/base/state/button_state.dart';
-import 'package:tmail_ui_user/features/email/domain/exceptions/email_exceptions.dart';
 import 'package:tmail_ui_user/features/email/domain/extensions/list_attachments_extension.dart';
 import 'package:tmail_ui_user/features/email/domain/model/detailed_email.dart';
 import 'package:tmail_ui_user/features/email/domain/model/event_action.dart';
 import 'package:tmail_ui_user/features/email/domain/model/mark_read_action.dart';
-import 'package:tmail_ui_user/features/email/domain/model/preview_email_eml_request.dart';
 import 'package:tmail_ui_user/features/email/domain/model/send_receipt_to_sender_request.dart';
 import 'package:tmail_ui_user/features/email/domain/model/view_entire_message_request.dart';
 import 'package:tmail_ui_user/features/email/domain/state/calendar_event_accept_state.dart';
@@ -66,28 +60,27 @@ import 'package:tmail_ui_user/features/email/domain/state/mark_as_email_star_sta
 import 'package:tmail_ui_user/features/email/domain/state/parse_calendar_event_state.dart';
 import 'package:tmail_ui_user/features/email/domain/state/parse_email_by_blob_id_state.dart';
 import 'package:tmail_ui_user/features/email/domain/state/preview_email_from_eml_file_state.dart';
-import 'package:tmail_ui_user/features/email/domain/state/preview_pdf_file_state.dart';
 import 'package:tmail_ui_user/features/email/domain/state/print_email_state.dart';
 import 'package:tmail_ui_user/features/email/domain/state/send_receipt_to_sender_state.dart';
 import 'package:tmail_ui_user/features/email/domain/state/unsubscribe_email_state.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/calendar_event_accept_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/calendar_event_counter_accept_interactor.dart';
-import 'package:tmail_ui_user/features/email/domain/usecases/download_all_attachments_for_web_interactor.dart';
-import 'package:tmail_ui_user/features/email/domain/usecases/export_all_attachments_interactor.dart';
-import 'package:tmail_ui_user/features/email/domain/usecases/get_entire_message_as_document_interactor.dart';
-import 'package:tmail_ui_user/features/email/domain/usecases/mark_as_star_email_interactor.dart';
-import 'package:tmail_ui_user/features/email/domain/usecases/maybe_calendar_event_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/calendar_event_reject_interactor.dart';
+import 'package:tmail_ui_user/features/email/domain/usecases/download_all_attachments_for_web_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/download_attachment_for_web_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/download_attachments_interactor.dart';
+import 'package:tmail_ui_user/features/email/domain/usecases/export_all_attachments_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/export_attachment_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/get_email_content_interactor.dart';
+import 'package:tmail_ui_user/features/email/domain/usecases/get_entire_message_as_document_interactor.dart';
+import 'package:tmail_ui_user/features/email/domain/usecases/get_html_content_from_attachment_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/mark_as_email_read_interactor.dart';
+import 'package:tmail_ui_user/features/email/domain/usecases/mark_as_star_email_interactor.dart';
+import 'package:tmail_ui_user/features/email/domain/usecases/maybe_calendar_event_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/parse_calendar_event_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/parse_email_by_blob_id_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/preview_email_from_eml_file_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/print_email_interactor.dart';
-import 'package:tmail_ui_user/features/email/domain/usecases/get_html_content_from_attachment_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/send_receipt_to_sender_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/store_opened_email_interactor.dart';
 import 'package:tmail_ui_user/features/email/presentation/action/email_ui_action.dart';
@@ -98,6 +91,7 @@ import 'package:tmail_ui_user/features/email/presentation/extensions/calendar_at
 import 'package:tmail_ui_user/features/email/presentation/extensions/calendar_organizer_extension.dart';
 import 'package:tmail_ui_user/features/email/presentation/extensions/handle_open_attachment_list_extension.dart';
 import 'package:tmail_ui_user/features/email/presentation/extensions/update_attendance_status_extension.dart';
+import 'package:tmail_ui_user/features/email/presentation/mixin/preview_attachment_mixin.dart';
 import 'package:tmail_ui_user/features/email/presentation/model/blob_calendar_event.dart';
 import 'package:tmail_ui_user/features/email/presentation/model/composer_arguments.dart';
 import 'package:tmail_ui_user/features/email/presentation/model/email_loaded.dart';
@@ -106,8 +100,6 @@ import 'package:tmail_ui_user/features/email/presentation/model/eml_previewer.da
 import 'package:tmail_ui_user/features/email/presentation/utils/email_action_reactor/email_action_reactor.dart';
 import 'package:tmail_ui_user/features/email/presentation/utils/email_utils.dart';
 import 'package:tmail_ui_user/features/email/presentation/widgets/html_attachment_previewer.dart';
-import 'package:tmail_ui_user/features/email/presentation/widgets/pdf_viewer/pdf_viewer.dart';
-import 'package:tmail_ui_user/features/email_previewer/email_previewer_dialog_view.dart';
 import 'package:tmail_ui_user/features/home/data/exceptions/session_exceptions.dart';
 import 'package:tmail_ui_user/features/home/domain/extensions/session_extensions.dart';
 import 'package:tmail_ui_user/features/mailbox/presentation/action/mailbox_ui_action.dart';
@@ -143,11 +135,12 @@ import 'package:twake_previewer_flutter/core/previewer_options/previewer_options
 import 'package:twake_previewer_flutter/twake_image_previewer/twake_image_previewer.dart';
 import 'package:twake_previewer_flutter/twake_plain_text_previewer/twake_plain_text_previewer.dart';
 
-class SingleEmailController extends BaseController with AppLoaderMixin {
+class SingleEmailController extends BaseController
+    with AppLoaderMixin,
+        PreviewAttachmentMixin {
 
   final mailboxDashBoardController = Get.find<MailboxDashBoardController>();
   final _downloadManager = Get.find<DownloadManager>();
-  final _printUtils = Get.find<PrintUtils>();
 
   final GetEmailContentInteractor _getEmailContentInteractor;
   final MarkAsEmailReadInteractor _markAsEmailReadInteractor;
@@ -281,7 +274,6 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
 
   @override
   void handleSuccessViewState(Success success) {
-    super.handleSuccessViewState(success);
     if (success is GetEmailContentSuccess) {
       _getEmailContentSuccess(success);
     } else if (success is GetEmailContentFromCacheSuccess) {
@@ -319,9 +311,29 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
     } else if (success is CalendarEventReplySuccess) {
       calendarEventSuccess(success);
     } else if (success is ParseEmailByBlobIdSuccess) {
-      _handleParseEmailByBlobIdSuccess(success);
+      handleParseEmailByBlobIdSuccess(
+        context: currentContext,
+        accountId: accountId,
+        session: session,
+        ownEmailAddress: ownEmailAddress,
+        blobId: success.blobId,
+        email: success.email,
+        controller: this,
+        previewInteractor: _previewEmailFromEmlFileInteractor,
+      );
     } else if (success is PreviewEmailFromEmlFileSuccess) {
-      _handlePreviewEmailFromEMLFileSuccess(success);
+      handlePreviewEmailFromEMLFileSuccess(
+        emlPreviewer: success.emlPreviewer,
+        context: currentContext,
+        imagePaths: imagePaths,
+        onMailtoAction: openMailToLink,
+        onDownloadAction: _downloadAttachmentInEMLPreview,
+        onPreviewAction: (uri) async {
+          if (currentContext != null) {
+            _openEMLPreviewer(currentContext!, uri);
+          }
+        },
+      );
     } else if (success is GetHtmlContentFromAttachmentSuccess) {
       _updateAttachmentsViewState(success.attachment.blobId, Right(success));
       Get.dialog(HtmlAttachmentPreviewer(
@@ -336,12 +348,13 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
       ));
     } else if (success is GettingHtmlContentFromAttachment) {
       _updateAttachmentsViewState(success.attachment.blobId, Right(success));
+    } else {
+      super.handleSuccessViewState(success);
     }
   }
 
   @override
   void handleFailureViewState(Failure failure) {
-    super.handleFailureViewState(failure);
     if (failure is MarkAsEmailReadFailure) {
       _handleMarkAsEmailReadFailure(failure);
     } else if (failure is DownloadAttachmentsFailure) {
@@ -363,13 +376,13 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
     } else if (failure is CalendarEventReplyFailure) {
       _calendarEventFailure(failure);
     } else if (failure is ParseEmailByBlobIdFailure) {
-      _handleParseEmailByBlobIdFailure(failure);
+      handleParseEmailByBlobIdFailure(failure);
     } else if (failure is PreviewEmailFromEmlFileFailure) {
-      _handlePreviewEmailFromEMLFileFailure(failure);
+      handlePreviewEmailFromEMLFileFailure(failure);
     } else if (failure is GetHtmlContentFromAttachmentFailure) {
       _handleGetHtmlContentFromAttachmentFailure(failure);
-    } else if (failure is PreviewPDFFileFailure) {
-      _handlePreviewPDFFileFailure(failure);
+    } else {
+      super.handleFailureViewState(failure);
     }
   }
 
@@ -1217,14 +1230,6 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
     }
   }
 
-  void _downloadPDFFile(Uint8List bytes, String fileName) {
-    _downloadManager.createAnchorElementDownloadFileWeb(bytes, fileName);
-  }
-
-  void _printPDFFile(Uint8List bytes, String fileName) async {
-    await _printUtils.printPDFFile(bytes, fileName);
-  }
-
   void _downloadAttachmentForWebFailureAction(DownloadAttachmentForWebFailure failure) {
     log('SingleEmailController::_downloadAttachmentForWebFailureAction(): $failure');
     if (failure.taskId != null) {
@@ -2036,255 +2041,20 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
   }
 
   void handleViewAttachmentAction(BuildContext context, Attachment attachment) {
-    if (PlatformInfo.isWeb && PlatformInfo.isCanvasKit && attachment.isPDFFile) {
-      previewPDFFileAction(context, attachment);
-    } else if (attachment.isEMLFile) {
-      previewEMLFileAction(attachment.blobId, AppLocalizations.of(context));
-    } else if (attachment.isHTMLFile) {
-      final attachmentEvaluation = evaluateAttachment(attachment);
-      if (!attachmentEvaluation.canDownloadAttachment) {
-        consumeState(Stream.value(Left(GetHtmlContentFromAttachmentFailure(
-          exception: null,
-          attachment: attachment,
-        ))));
-        return;
-      }
-
-      consumeState(_getHtmlContentFromAttachmentInteractor.execute(
-        attachmentEvaluation.accountId!,
-        attachment,
-        DownloadTaskId(attachmentEvaluation.blobId!.value),
-        attachmentEvaluation.downloadUrl!,
-        TransformConfiguration.create(
-          customDomTransformers: [SanitizeHyperLinkTagInHtmlTransformer()],
-          customTextTransformers: [const StandardizeHtmlSanitizingTransformers()],
-        ),
-      ));
-    } else {
-      handleDownloadAttachmentAction(
-        attachment,
-        previewerSupported: attachmentPreviewSupported(attachment),
-      );
-    }
-  }
-
-  bool attachmentPreviewSupported(Attachment attachment) {
-    return attachment.isImage || attachment.isText || attachment.isJson;
-  }
-
-  ({
-    bool canDownloadAttachment,
-    AccountId? accountId,
-    String? downloadUrl,
-    Id? blobId,
-  }) evaluateAttachment(
-    Attachment attachment,
-  ) {
-    final accountId = mailboxDashBoardController.accountId.value;
-    dynamic downloadUrl;
-    try {
-      downloadUrl = mailboxDashBoardController.sessionCurrent
-        ?.getDownloadUrl(jmapUrl: dynamicUrlInterceptors.jmapUrl);
-    } catch (e) {
-      logError('SingleEmailController::_getEmailContentAction(): $e');
-      downloadUrl = null;
-    }
-    final blobId = attachment.blobId;
-
-    if (accountId == null || downloadUrl == null || blobId == null) {
-      return (
-        canDownloadAttachment: false,
-        accountId: accountId,
-        downloadUrl: downloadUrl,
-        blobId: blobId,
-      );
-    }
-
-    return (
-      canDownloadAttachment: true,
-      accountId: accountId,
-      downloadUrl: downloadUrl,
-      blobId: blobId,
-    );
-  }
-
-  Future<void> previewPDFFileAction(BuildContext context, Attachment attachment) async {
-    if (accountId == null || session == null) {
-      appToast.showToastErrorMessage(
-        context,
-        AppLocalizations.of(context).noPreviewAvailable);
-      return;
-    }
-
-    try {
-      final downloadUrl = session!.getDownloadUrl(
-        jmapUrl: dynamicUrlInterceptors.jmapUrl,
-      );
-
-      await Get.generalDialog(
-        barrierColor: Colors.black.withValues(alpha: 0.8),
-        pageBuilder: (_, __, ___) {
-          return PointerInterceptor(
-            child: PDFViewer(
-              attachment: attachment,
-              accountId: accountId!,
-              downloadUrl: downloadUrl,
-              downloadAction: _downloadPDFFile,
-              printAction: _printPDFFile,
-            )
-          );
-        },
-      );
-    } catch (e) {
-      logError('SingleEmailController::previewPDFFileAction(): $e');
-      consumeState(Stream.value(Left(PreviewEmailFromEmlFileFailure(e))));
-    }
-  }
-
-  void previewEMLFileAction(Id? blobId, AppLocalizations appLocalizations) {
-    SmartDialog.showLoading(
-      msg: appLocalizations.loadingPleaseWait,
-      maskColor: Colors.black38,
-    );
-
-    if (accountId == null) {
-      consumeState(Stream.value(Left(ParseEmailByBlobIdFailure(NotFoundAccountIdException()))));
-      return;
-    }
-
-    if (blobId == null) {
-      consumeState(Stream.value(Left(ParseEmailByBlobIdFailure(NotFoundBlobIdException([])))));
-      return;
-    }
-
-    consumeState(_parseEmailByBlobIdInteractor.execute(accountId!, blobId));
-  }
-
-  void _handleParseEmailByBlobIdSuccess(ParseEmailByBlobIdSuccess success) {
-    if (session == null) {
-      consumeState(Stream.value(Left(PreviewEmailFromEmlFileFailure(NotFoundSessionException()))));
-      return;
-    }
-
-    if (accountId == null) {
-      consumeState(Stream.value(Left(PreviewEmailFromEmlFileFailure(NotFoundAccountIdException()))));
-      return;
-    }
-
-    if (currentContext == null) {
-      consumeState(Stream.value(Left(PreviewEmailFromEmlFileFailure(NotFoundContextException()))));
-      return;
-    }
-
-    try {
-      consumeState(_previewEmailFromEmlFileInteractor.execute(
-        PreviewEmailEMLRequest(
-          accountId: accountId!,
-          ownEmailAddress: ownEmailAddress,
-          blobId: success.blobId,
-          email: success.email,
-          locale: Localizations.localeOf(currentContext!),
-          appLocalizations: AppLocalizations.of(currentContext!),
-          baseDownloadUrl: session!.getDownloadUrl(jmapUrl: dynamicUrlInterceptors.jmapUrl),
-        ),
-      ));
-    } catch (e) {
-      logError('SingleEmailController::_handleParseEmailByBlobIdSuccess(): $e');
-      consumeState(Stream.value(Left(PreviewEmailFromEmlFileFailure(e))));
-    }
-  }
-
-  void _handleParseEmailByBlobIdFailure(ParseEmailByBlobIdFailure failure) {
-    SmartDialog.dismiss();
-    toastManager.showMessageFailure(failure);
-  }
-
-  void _handlePreviewPDFFileFailure(PreviewPDFFileFailure failure) {
-    SmartDialog.dismiss();
-    toastManager.showMessageFailure(failure);
-  }
-
-  void _handlePreviewEmailFromEMLFileFailure(PreviewEmailFromEmlFileFailure failure) {
-    SmartDialog.dismiss();
-    toastManager.showMessageFailure(failure);
-  }
-
-  void _handlePreviewEmailFromEMLFileSuccess(PreviewEmailFromEmlFileSuccess success) {
-    SmartDialog.dismiss();
-
-    if (PlatformInfo.isWeb) {
-      bool isOpen = HtmlUtils.openNewWindowByUrl(
-        RouteUtils.createUrlWebLocationBar(
-          AppRoutes.emailEMLPreviewer,
-          previewId: success.emlPreviewer.id
-        ).toString(),
-      );
-
-      if (!isOpen) {
-        toastManager.showMessageFailure(PreviewEmailFromEmlFileFailure(CannotOpenNewWindowException()));
-      }
-    } else if (PlatformInfo.isMobile) {
-      if (currentContext == null) {
-        toastManager.showMessageFailure(PreviewEmailFromEmlFileFailure(NotFoundContextException()));
-        return;
-      }
-
-      if (PlatformInfo.isAndroid) {
-        showModalSheetToPreviewEMLAttachment(
-          currentContext!,
-          success.emlPreviewer,
-        );
-      } if (PlatformInfo.isIOS) {
-        showDialogToPreviewEMLAttachment(
-          currentContext!,
-          success.emlPreviewer,
-        );
-      }
-    }
-  }
-
-  void showModalSheetToPreviewEMLAttachment(
-    BuildContext context,
-    EMLPreviewer emlPreviewer,
-  ) {
-    showModalBottomSheet(
+    previewAttachmentAction(
       context: context,
-      showDragHandle: true,
-      useSafeArea: true,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20.0),
-          topRight: Radius.circular(20.0),
-        ),
-      ),
-      builder: (_) {
-        return DraggableScrollableSheet(
-          initialChildSize: 1.0,
-          builder: (context, ___) => EmailPreviewerDialogView(
-            emlPreviewer: emlPreviewer,
-            imagePaths: imagePaths,
-            onMailtoDelegateAction: openMailToLink,
-            onPreviewEMLDelegateAction: (uri) => _openEMLPreviewer(context, uri),
-            onDownloadAttachmentDelegateAction: (uri) =>
-                _downloadAttachmentInEMLPreview(uri),
-          ),
+      attachment: attachment,
+      accountId: accountId,
+      session: session,
+      controller: this,
+      parseEmailInteractor: _parseEmailByBlobIdInteractor,
+      getHtmlInteractor: _getHtmlContentFromAttachmentInteractor,
+      onDownloadAttachment: (attachment) {
+        handleDownloadAttachmentAction(
+          attachment,
+          previewerSupported: attachment.isPreviewSupported,
         );
       },
-    );
-  }
-
-  void showDialogToPreviewEMLAttachment(BuildContext context, EMLPreviewer emlPreviewer) {
-    Get.dialog(
-      EmailPreviewerDialogView(
-        emlPreviewer: emlPreviewer,
-        imagePaths: imagePaths,
-        onMailtoDelegateAction: openMailToLink,
-        onPreviewEMLDelegateAction: (uri) => _openEMLPreviewer(context, uri),
-        onDownloadAttachmentDelegateAction: (uri) =>
-            _downloadAttachmentInEMLPreview(uri),
-      ),
-      barrierColor: AppColor.colorDefaultCupertinoActionSheet,
     );
   }
 
@@ -2296,7 +2066,13 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
     log('SingleEmailController::_openEMLPreviewer:blobId = $blobId');
     if (blobId.isEmpty) return;
 
-    previewEMLFileAction(Id(blobId), AppLocalizations.of(context));
+    previewEMLFileAction(
+      appLocalizations: AppLocalizations.of(context),
+      accountId: accountId,
+      blobId: Id(blobId),
+      controller: this,
+      parseEmailByBlobIdInteractor: _parseEmailByBlobIdInteractor,
+    );
   }
 
   Future<void> _downloadAttachmentInEMLPreview(Uri? uri) async {
@@ -2376,12 +2152,16 @@ class SingleEmailController extends BaseController with AppLoaderMixin {
         SmartDialog.dismiss();
 
         showDialogToPreviewEMLAttachment(
-          context,
-          EMLPreviewer(
+          context: context,
+          emlPreviewer: EMLPreviewer(
             id: presentationEmail.id?.asString ?? '',
             title: presentationEmail.subject ?? '',
             content: success.messageDocument,
           ),
+          imagePaths: imagePaths,
+          onMailtoAction: openMailToLink,
+          onPreviewAction: (uri) => _openEMLPreviewer(context, uri),
+          onDownloadAction: _downloadAttachmentInEMLPreview,
         );
       },
       onFailure: (_) {
