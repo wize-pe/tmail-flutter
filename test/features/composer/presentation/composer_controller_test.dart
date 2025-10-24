@@ -44,8 +44,10 @@ import 'package:tmail_ui_user/features/composer/presentation/extensions/setup_se
 import 'package:tmail_ui_user/features/composer/presentation/model/formatting_options_state.dart';
 import 'package:tmail_ui_user/features/composer/presentation/model/saved_composing_email.dart';
 import 'package:tmail_ui_user/features/composer/presentation/model/screen_display_mode.dart';
+import 'package:tmail_ui_user/features/email/domain/usecases/download_and_get_html_content_from_attachment_interactor.dart';
+import 'package:tmail_ui_user/features/email/domain/usecases/download_attachment_for_web_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/get_email_content_interactor.dart';
-import 'package:tmail_ui_user/features/email/domain/usecases/get_html_content_from_attachment_interactor.dart';
+import 'package:tmail_ui_user/features/email/domain/usecases/get_html_content_from_upload_file_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/parse_email_by_blob_id_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/preview_email_from_eml_file_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/print_email_interactor.dart';
@@ -187,7 +189,9 @@ class MockMailboxDashBoardController extends Mock implements MailboxDashBoardCon
   MockSpec<SaveTemplateEmailInteractor>(),
   MockSpec<ParseEmailByBlobIdInteractor>(),
   MockSpec<PreviewEmailFromEmlFileInteractor>(),
-  MockSpec<GetHtmlContentFromAttachmentInteractor>(),
+  MockSpec<GetHtmlContentFromUploadFileInteractor>(),
+  MockSpec<DownloadAttachmentForWebInteractor>(),
+  MockSpec<DownloadAndGetHtmlContentFromAttachmentInteractor>(),
   // Additional Getx dependencies mock specs
   MockSpec<NetworkConnectionController>(fallbackGenerators: fallbackGenerators),
   MockSpec<BeforeReconnectManager>(),
@@ -236,7 +240,9 @@ void main() {
   late MockSaveTemplateEmailInteractor mockSaveTemplateEmailInteractor;
   late MockParseEmailByBlobIdInteractor mockParseEmailByBlobIdInteractor;
   late MockPreviewEmailFromEmlFileInteractor mockPreviewEmailFromEmlFileInteractor;
-  late MockGetHtmlContentFromAttachmentInteractor mockGetHtmlContentFromAttachmentInteractor;
+  late MockGetHtmlContentFromUploadFileInteractor mockGetHtmlContentFromUploadFileInteractor;
+  late MockDownloadAttachmentForWebInteractor mockDownloadAttachmentForWebInteractor;
+  late MockDownloadAndGetHtmlContentFromAttachmentInteractor mockDownloadAndGetHtmlContentFromAttachmentInteractor;
 
   // Declaration Getx dependencies
   final mockMailboxDashBoardController = MockMailboxDashBoardController();
@@ -313,7 +319,9 @@ void main() {
     mockSaveTemplateEmailInteractor = MockSaveTemplateEmailInteractor();
     mockParseEmailByBlobIdInteractor = MockParseEmailByBlobIdInteractor();
     mockPreviewEmailFromEmlFileInteractor = MockPreviewEmailFromEmlFileInteractor();
-    mockGetHtmlContentFromAttachmentInteractor = MockGetHtmlContentFromAttachmentInteractor();
+    mockGetHtmlContentFromUploadFileInteractor = MockGetHtmlContentFromUploadFileInteractor();
+    mockDownloadAttachmentForWebInteractor = MockDownloadAttachmentForWebInteractor();
+    mockDownloadAndGetHtmlContentFromAttachmentInteractor = MockDownloadAndGetHtmlContentFromAttachmentInteractor();
 
     composerController = ComposerController(
       mockLocalFilePickerInteractor,
@@ -333,7 +341,9 @@ void main() {
       mockSaveTemplateEmailInteractor,
       mockParseEmailByBlobIdInteractor,
       mockPreviewEmailFromEmlFileInteractor,
-      mockGetHtmlContentFromAttachmentInteractor,
+      mockGetHtmlContentFromUploadFileInteractor,
+      mockDownloadAndGetHtmlContentFromAttachmentInteractor,
+      mockDownloadAttachmentForWebInteractor,
     );
 
     mockHtmlEditorApi = MockHtmlEditorApi();

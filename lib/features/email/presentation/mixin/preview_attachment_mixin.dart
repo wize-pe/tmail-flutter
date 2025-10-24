@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:core/core.dart';
-import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
+import 'package:get/get_navigation/src/dialog/dialog_route.dart';
 import 'package:jmap_dart_client/jmap/account_id.dart';
 import 'package:jmap_dart_client/jmap/core/id.dart';
 import 'package:jmap_dart_client/jmap/core/session/session.dart';
@@ -16,25 +16,40 @@ import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:tmail_ui_user/features/base/base_controller.dart';
 import 'package:tmail_ui_user/features/email/domain/exceptions/email_exceptions.dart';
 import 'package:tmail_ui_user/features/email/domain/model/preview_email_eml_request.dart';
-import 'package:tmail_ui_user/features/email/domain/state/get_html_content_from_attachment_state.dart';
+import 'package:tmail_ui_user/features/email/domain/state/download_and_get_html_content_from_attachment_state.dart';
 import 'package:tmail_ui_user/features/email/domain/state/parse_email_by_blob_id_state.dart';
 import 'package:tmail_ui_user/features/email/domain/state/preview_email_from_eml_file_state.dart';
-import 'package:tmail_ui_user/features/email/domain/usecases/get_html_content_from_attachment_interactor.dart';
+import 'package:tmail_ui_user/features/email/domain/usecases/download_and_get_html_content_from_attachment_interactor.dart';
+import 'package:tmail_ui_user/features/email/domain/usecases/get_html_content_from_upload_file_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/parse_email_by_blob_id_interactor.dart';
 import 'package:tmail_ui_user/features/email/domain/usecases/preview_email_from_eml_file_interactor.dart';
 import 'package:tmail_ui_user/features/email/presentation/extensions/attachment_extension.dart';
+import 'package:tmail_ui_user/features/email/presentation/mixin/emit_mixin.dart';
 import 'package:tmail_ui_user/features/email/presentation/model/eml_previewer.dart';
+import 'package:tmail_ui_user/features/email/presentation/widgets/attachment_item_widget.dart';
+import 'package:tmail_ui_user/features/email/presentation/widgets/html_attachment_previewer.dart';
 import 'package:tmail_ui_user/features/email/presentation/widgets/pdf_viewer/pdf_viewer.dart';
 import 'package:tmail_ui_user/features/email_previewer/email_previewer_dialog_view.dart';
 import 'package:tmail_ui_user/features/home/data/exceptions/session_exceptions.dart';
+import 'package:tmail_ui_user/features/upload/presentation/model/upload_file_state.dart';
 import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
 import 'package:tmail_ui_user/main/routes/app_routes.dart';
+import 'package:tmail_ui_user/main/routes/route_navigation.dart';
 import 'package:tmail_ui_user/main/routes/route_utils.dart';
 import 'package:tmail_ui_user/main/utils/toast_manager.dart';
+import 'package:twake_previewer_flutter/core/constants/supported_charset.dart';
+import 'package:twake_previewer_flutter/core/previewer_options/options/previewer_state.dart';
+import 'package:twake_previewer_flutter/core/previewer_options/options/top_bar_options.dart';
+import 'package:twake_previewer_flutter/core/previewer_options/previewer_options.dart';
+import 'package:twake_previewer_flutter/twake_image_previewer/twake_image_previewer.dart';
+import 'package:twake_previewer_flutter/twake_plain_text_previewer/twake_plain_text_previewer.dart';
 
-typedef OnDownloadAttachmentAction = void Function(Attachment attachment);
+typedef OnPreviewOrDownloadAttachmentAction = void Function(
+  Attachment attachment,
+  bool isPreviewSupported,
+);
 
-mixin PreviewAttachmentMixin {
+mixin PreviewAttachmentMixin on EmitMixin {
   final DownloadManager _downloadManager = Get.find<DownloadManager>();
   final PrintUtils _printUtils = Get.find<PrintUtils>();
   final AppToast _appToast = Get.find<AppToast>();
@@ -49,8 +64,9 @@ mixin PreviewAttachmentMixin {
     required Session? session,
     required BaseController controller,
     required ParseEmailByBlobIdInteractor parseEmailInteractor,
-    required GetHtmlContentFromAttachmentInteractor getHtmlInteractor,
-    required OnDownloadAttachmentAction onDownloadAttachment,
+    required DownloadAndGetHtmlContentFromAttachmentInteractor downloadAndGetHtmlInteractor,
+    required OnPreviewOrDownloadAttachmentAction onPreviewOrDownloadAction,
+    bool isDialogLoadingVisible = false,
   }) {
     if (PlatformInfo.isWeb && attachment.isPDFFile) {
       _previewPDFFile(
@@ -60,7 +76,7 @@ mixin PreviewAttachmentMixin {
         session: session,
       );
     } else if (attachment.isEMLFile) {
-      previewEMLFileAction(
+      preparePreviewEMLFileAction(
         appLocalizations: AppLocalizations.of(context),
         accountId: accountId,
         blobId: attachment.blobId,
@@ -68,16 +84,135 @@ mixin PreviewAttachmentMixin {
         parseEmailByBlobIdInteractor: parseEmailInteractor,
       );
     } else if (attachment.isHTMLFile) {
-      _previewHtmlFileAction(
+      _preparePreviewHtmlFileAction(
+        appLocalizations: AppLocalizations.of(context),
         session: session,
         accountId: accountId,
         attachment: attachment,
         controller: controller,
-        getHtmlInteractor: getHtmlInteractor,
+        downloadAndGetHtmlInteractor: downloadAndGetHtmlInteractor,
+        isDialogLoadingVisible: isDialogLoadingVisible,
       );
     } else {
-      onDownloadAttachment(attachment);
+      if (isDialogLoadingVisible) {
+        SmartDialog.showLoading(
+          msg: AppLocalizations.of(context).loadingPleaseWait,
+          maskColor: Colors.black38,
+        );
+      }
+      onPreviewOrDownloadAction(
+        attachment,
+        attachment.isPreviewSupported,
+      );
     }
+  }
+
+  void previewUploadFileAction({
+    required BuildContext context,
+    required UploadFileState uploadFile,
+    required AccountId? accountId,
+    required Session? session,
+    required BaseController controller,
+    required ParseEmailByBlobIdInteractor parseEmailInteractor,
+    required GetHtmlContentFromUploadFileInteractor getHtmlInteractor,
+    required DownloadAndGetHtmlContentFromAttachmentInteractor downloadAndGetHtmlInteractor,
+    required OnPreviewOrDownloadAttachmentAction onPreviewOrDownloadAction,
+    bool isDialogLoadingVisible = false,
+  }) {
+    final attachment = uploadFile.attachment!;
+
+    if (PlatformInfo.isWeb && attachment.isPDFFile == true) {
+      _previewPDFFile(
+        context: context,
+        attachment: attachment,
+        accountId: accountId,
+        session: session,
+      );
+      return;
+    }
+
+    if (attachment.isEMLFile == true) {
+      preparePreviewEMLFileAction(
+        appLocalizations: AppLocalizations.of(context),
+        accountId: accountId,
+        blobId: attachment.blobId,
+        controller: controller,
+        parseEmailByBlobIdInteractor: parseEmailInteractor,
+      );
+      return;
+    }
+
+    if (attachment.isHTMLFile == true) {
+      if (uploadFile.file?.bytes != null) {
+        _preparePreviewHtmlFileByUploadFile(
+          appLocalizations: AppLocalizations.of(context),
+          uploadFile: uploadFile,
+          controller: controller,
+          getHtmlInteractor: getHtmlInteractor,
+          isDialogLoadingVisible: isDialogLoadingVisible,
+        );
+      } else {
+        _preparePreviewHtmlFileAction(
+          appLocalizations: AppLocalizations.of(context),
+          attachment: attachment,
+          accountId: accountId,
+          session: session,
+          controller: controller,
+          downloadAndGetHtmlInteractor: downloadAndGetHtmlInteractor,
+          isDialogLoadingVisible: isDialogLoadingVisible,
+        );
+      }
+      return;
+    }
+
+    if (attachment.isImage == true && uploadFile.file?.bytes != null) {
+      previewImageFileAction(
+        attachment: attachment,
+        imageBytes: uploadFile.file!.bytes!,
+        context: currentContext,
+        onDownloadAction: (attachment) =>
+            onPreviewOrDownloadAction(attachment, false),
+      );
+      return;
+    }
+
+    if ((attachment.isText == true || attachment.isJson == true) &&
+        uploadFile.file?.bytes != null) {
+      previewPlainTextFileAction(
+        attachment: attachment,
+        fileBytes: uploadFile.file!.bytes!,
+        context: currentContext,
+        onDownloadAction: (attachment) =>
+            onPreviewOrDownloadAction(attachment, false),
+      );
+      return;
+    }
+
+    if (uploadFile.file?.bytes != null) {
+      downloadFileWebAction(
+        fileName: attachment.generateFileName(),
+        fileBytes: uploadFile.file!.bytes!,
+      );
+      return;
+    }
+
+    if (isDialogLoadingVisible) {
+      SmartDialog.showLoading(
+        msg: AppLocalizations.of(context).loadingPleaseWait,
+        maskColor: Colors.black38,
+      );
+    }
+    onPreviewOrDownloadAction(attachment, attachment.isPreviewSupported);
+  }
+
+  void downloadFileWebAction({
+    required String fileName,
+    required Uint8List fileBytes,
+  }) {
+    _downloadManager.createAnchorElementDownloadFileWeb(
+      fileBytes,
+      fileName,
+    );
   }
   
   Future<void> _previewPDFFile({
@@ -131,7 +266,7 @@ mixin PreviewAttachmentMixin {
     await _printUtils.printPDFFile(bytes, fileName);
   }
 
-  void previewEMLFileAction({
+  void preparePreviewEMLFileAction({
     required AppLocalizations appLocalizations,
     required AccountId? accountId,
     required Id? blobId,
@@ -144,7 +279,7 @@ mixin PreviewAttachmentMixin {
     );
 
     if (accountId == null) {
-      _emitFailure(
+      emitFailure(
         controller: controller,
         failure: ParseEmailByBlobIdFailure(NotFoundAccountIdException()),
       );
@@ -152,7 +287,7 @@ mixin PreviewAttachmentMixin {
     }
 
     if (blobId == null) {
-      _emitFailure(
+      emitFailure(
         controller: controller,
         failure: ParseEmailByBlobIdFailure(NotFoundBlobIdException([])),
       );
@@ -201,13 +336,22 @@ mixin PreviewAttachmentMixin {
     );
   }
 
-  void _previewHtmlFileAction({
+  void _preparePreviewHtmlFileAction({
+    required AppLocalizations appLocalizations,
     required Session? session,
     required AccountId? accountId,
     required Attachment attachment,
     required BaseController controller,
-    required GetHtmlContentFromAttachmentInteractor getHtmlInteractor,
+    required DownloadAndGetHtmlContentFromAttachmentInteractor downloadAndGetHtmlInteractor,
+    bool isDialogLoadingVisible = false,
   }) {
+    if (isDialogLoadingVisible) {
+      SmartDialog.showLoading(
+        msg: appLocalizations.loadingPleaseWait,
+        maskColor: Colors.black38,
+      );
+    }
+
     final attachmentEvaluation = evaluateAttachment(
       accountId: accountId,
       session: session,
@@ -215,9 +359,9 @@ mixin PreviewAttachmentMixin {
     );
 
     if (!attachmentEvaluation.canDownloadAttachment) {
-      _emitFailure(
+      emitFailure(
         controller: controller,
-        failure: GetHtmlContentFromAttachmentFailure(
+        failure: DownloadAndGetHtmlContentFromAttachmentFailure(
           exception: null,
           attachment: attachment,
         ),
@@ -226,7 +370,7 @@ mixin PreviewAttachmentMixin {
     }
 
     controller.consumeState(
-      getHtmlInteractor.execute(
+      downloadAndGetHtmlInteractor.execute(
         attachmentEvaluation.accountId!,
         attachment,
         DownloadTaskId(attachmentEvaluation.blobId!.value),
@@ -241,11 +385,20 @@ mixin PreviewAttachmentMixin {
     );
   }
 
-  void _emitFailure({
+  void _preparePreviewHtmlFileByUploadFile({
+    required AppLocalizations appLocalizations,
+    required UploadFileState uploadFile,
     required BaseController controller,
-    required FeatureFailure failure,
+    required GetHtmlContentFromUploadFileInteractor getHtmlInteractor,
+    bool isDialogLoadingVisible = false,
   }) {
-    controller.consumeState(Stream.value(Left(failure)));
+    if (isDialogLoadingVisible) {
+      SmartDialog.showLoading(
+        msg: appLocalizations.loadingPleaseWait,
+        maskColor: Colors.black38,
+      );
+    }
+    controller.consumeState(getHtmlInteractor.execute(uploadFile));
   }
 
   void handleParseEmailByBlobIdSuccess({
@@ -259,7 +412,7 @@ mixin PreviewAttachmentMixin {
     required PreviewEmailFromEmlFileInteractor previewInteractor,
   }) {
     if (session == null) {
-      _emitFailure(
+      emitFailure(
         controller: controller,
         failure: PreviewEmailFromEmlFileFailure(NotFoundSessionException()),
       );
@@ -267,7 +420,7 @@ mixin PreviewAttachmentMixin {
     }
 
     if (accountId == null) {
-      _emitFailure(
+      emitFailure(
         controller: controller,
         failure: PreviewEmailFromEmlFileFailure(NotFoundAccountIdException()),
       );
@@ -275,7 +428,7 @@ mixin PreviewAttachmentMixin {
     }
 
     if (context == null) {
-      _emitFailure(
+      emitFailure(
         controller: controller,
         failure: PreviewEmailFromEmlFileFailure(NotFoundContextException()),
       );
@@ -297,7 +450,7 @@ mixin PreviewAttachmentMixin {
         ),
       ));
     } catch (e) {
-      _emitFailure(
+      emitFailure(
         controller: controller,
         failure: PreviewEmailFromEmlFileFailure(e),
       );
@@ -316,7 +469,7 @@ mixin PreviewAttachmentMixin {
     _toastManager.showMessageFailure(failure);
   }
 
-  void handlePreviewEmailFromEMLFileSuccess({
+  void previewEMLFileAction({
     required EMLPreviewer emlPreviewer,
     required BuildContext? context,
     required ImagePaths imagePaths,
@@ -420,6 +573,115 @@ mixin PreviewAttachmentMixin {
         onDownloadAttachmentDelegateAction: onDownloadAction,
       ),
       barrierColor: AppColor.colorDefaultCupertinoActionSheet,
+    );
+  }
+
+  void handlePreviewHtmlFileFailure() {
+    if (currentOverlayContext != null && currentContext != null) {
+      _appToast.showToastErrorMessage(
+        currentOverlayContext!,
+        AppLocalizations.of(currentContext!).thisHtmlAttachmentCannotBePreviewed,
+      );
+    }
+  }
+
+  void previewImageFileAction({
+    required Attachment attachment,
+    required Uint8List imageBytes,
+    required BuildContext? context,
+    required OnDownloadAttachmentFileAction onDownloadAction,
+  }) {
+    log('$runtimeType::previewImageFileAction: Attachment blobId is ${attachment.blobId?.value}');
+    if (context == null) return;
+
+    Navigator.of(context).push(
+      GetDialogRoute(
+        pageBuilder: (context, _, __) => PointerInterceptor(
+          child: TwakeImagePreviewer(
+            bytes: imageBytes,
+            zoomable: true,
+            previewerOptions: const PreviewerOptions(
+              previewerState: PreviewerState.success,
+            ),
+            topBarOptions: TopBarOptions(
+              title: attachment.generateFileName(),
+              onClose: () => Navigator.maybePop(context),
+              onDownload: () => onDownloadAction(attachment),
+            ),
+          ),
+        ),
+        barrierDismissible: false,
+      ),
+    );
+  }
+
+  void previewPlainTextFileAction({
+    required Attachment attachment,
+    required Uint8List fileBytes,
+    required BuildContext? context,
+    required OnDownloadAttachmentFileAction onDownloadAction,
+  }) {
+    if (context == null) return;
+
+    Navigator.of(context).push(
+      GetDialogRoute(
+        pageBuilder: (context, _, __) => PointerInterceptor(
+          child: TwakePlainTextPreviewer(
+            supportedCharset: SupportedCharset.utf8,
+            bytes: fileBytes,
+            previewerOptions: PreviewerOptions(
+              previewerState: PreviewerState.success,
+              width: context.width * 0.8,
+            ),
+            topBarOptions: TopBarOptions(
+              title: attachment.generateFileName(),
+              onClose: () => Navigator.maybePop(context),
+              onDownload: () => onDownloadAction(attachment),
+            ),
+          ),
+        ),
+        barrierDismissible: false,
+      ),
+    );
+  }
+
+  void previewHtmlFileAction({
+    required Attachment attachment,
+    required String title,
+    required String content,
+    required OnMailtoDelegateAction openMailToLink,
+    required OnDownloadAttachmentFileAction onDownloadAction,
+    required ResponsiveUtils responsiveUtils,
+  }) {
+    Get.dialog(
+      HtmlAttachmentPreviewer(
+        title: title,
+        htmlContent: content,
+        mailToClicked: openMailToLink,
+        downloadAttachmentClicked: () => onDownloadAction(attachment),
+        responsiveUtils: responsiveUtils,
+      ),
+    );
+  }
+
+  Future<void> openEMLPreviewer({
+    required BuildContext context,
+    required BaseController controller,
+    required ParseEmailByBlobIdInteractor parseEmailInteractor,
+    required Uri? uri,
+    required AccountId? accountId,
+  }) async {
+    if (uri == null) return;
+
+    final blobId = uri.path;
+    if (blobId.isEmpty) return;
+
+    preparePreviewEMLFileAction(
+      appLocalizations: AppLocalizations.of(context),
+      accountId: accountId,
+      blobId: Id(blobId),
+      controller: controller,
+      parseEmailByBlobIdInteractor: parseEmailInteractor,
     );
   }
 }

@@ -95,9 +95,18 @@ class AttachmentItemComposerWidget extends StatelessWidget with AppLoaderMixin {
     );
 
     if (onPreviewAttachmentAction != null) {
-      bodyItem = InkWell(
-        onTap: () => onPreviewAttachmentAction!(uploadTaskId),
-        child: bodyItem,
+      bodyItem = Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: () => onPreviewAttachmentAction!(uploadTaskId),
+          borderRadius: const BorderRadius.all(
+            Radius.circular(AttachmentItemComposerWidgetStyle.radius),
+          ),
+          child: Padding(
+            padding: itemPadding ?? AttachmentItemComposerWidgetStyle.padding,
+            child: bodyItem,
+          ),
+        ),
       );
     }
 
@@ -108,7 +117,9 @@ class AttachmentItemComposerWidget extends StatelessWidget with AppLoaderMixin {
         color: AttachmentItemComposerWidgetStyle.backgroundColor
       ),
       width: AttachmentItemComposerWidgetStyle.width,
-      padding: itemPadding ?? AttachmentItemComposerWidgetStyle.padding,
+      padding: onPreviewAttachmentAction == null
+        ? itemPadding ?? AttachmentItemComposerWidgetStyle.padding
+        : null,
       margin: itemMargin,
       child: bodyItem,
     );
