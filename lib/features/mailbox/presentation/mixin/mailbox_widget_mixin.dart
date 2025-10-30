@@ -21,6 +21,12 @@ mixin MailboxWidgetMixin {
     bool spamReportEnabled,
     bool deletedMessageVaultSupported
   ) {
+    if (mailbox.isFavorite) {
+      return [
+        if (PlatformInfo.isWeb)
+          MailboxActions.openInNewTab,
+      ];
+    }
 
     return [
       if (PlatformInfo.isWeb)

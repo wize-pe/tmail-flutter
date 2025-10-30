@@ -1326,7 +1326,7 @@ class MailboxDashBoardController extends ReloadableController
       .map((e) => MapEntry(e.id!, e.hasRead))
     );
     if (searchController.isSearchEmailRunning ||
-        selectedMailbox.value?.id.isFavoriteMailboxId == true) {
+        selectedMailbox.value?.isFavorite == true) {
       final Map<MailboxId,List<EmailId>> mapListEmailSelectedByMailBoxId = {};
       for (var element in listEmails) {
         final mailbox = element.findMailboxContain(mapMailboxById);
