@@ -5212,4 +5212,11 @@ class AppLocalizations {
       name: 'mailHasBeenUnstarred',
     );
   }
+
+  String get favoriteMailboxDisplayName {
+    return Intl.message(
+      'Starred',
+      name: 'favoriteMailboxDisplayName',
+    );
+  }
 }

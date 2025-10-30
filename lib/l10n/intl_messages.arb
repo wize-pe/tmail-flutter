@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2025-10-17T09:52:08.303266",
+  "@@last_modified": "2025-10-29T17:58:51.261675",
   "initializing_data": "Initializing data...",
   "@initializing_data": {
     "type": "text",
@@ -2688,13 +2688,13 @@
     "placeholders_order": [],
     "placeholders": {}
   },
-  "noEmailInYourCurrentFolder": "There are no emails in your current folder",
+  "noEmailInYourCurrentFolder": "We're sorry, there are no emails in your current folder",
   "@noEmailInYourCurrentFolder": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
   },
-  "noEmailMatchYourCurrentFilter": "There are no emails that match your current filter.",
+  "noEmailMatchYourCurrentFilter": "We're sorry, there are no emails that match your current filter.",
   "@noEmailMatchYourCurrentFilter": {
     "type": "text",
     "placeholders_order": [],
@@ -4934,6 +4934,12 @@
   },
   "mailHasBeenUnstarred": "Mail has been unstarred",
   "@mailHasBeenUnstarred": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "favoriteMailboxDisplayName": "Starred",
+  "@favoriteMailboxDisplayName": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
