@@ -30,6 +30,7 @@ import 'package:model/email/presentation_email.dart';
 import 'package:model/email/read_actions.dart';
 import 'package:model/extensions/email_address_extension.dart';
 import 'package:model/extensions/list_email_address_extension.dart';
+import 'package:model/extensions/mailbox_id_extension.dart';
 import 'package:model/extensions/presentation_email_extension.dart';
 import 'package:model/extensions/presentation_mailbox_extension.dart';
 import 'package:model/extensions/session_extension.dart';
@@ -785,9 +786,11 @@ class EmailActionReactor {
     PresentationMailbox? selectedMailbox,
     bool isSearchEmailRunning = false,
   }) {
-    if (selectedMailbox == null || isSearchEmailRunning) {
+    if (selectedMailbox == null ||
+        isSearchEmailRunning ||
+        selectedMailbox.id.isFavoriteMailboxId == true) {
       return presentationEmail.findMailboxContain(mapMailbox);
-    } 
+    }
 
     return selectedMailbox;
   }

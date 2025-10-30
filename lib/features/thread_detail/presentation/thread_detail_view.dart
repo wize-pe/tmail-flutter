@@ -6,10 +6,10 @@ import 'package:core/utils/platform_info.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:model/mailbox/presentation_mailbox.dart';
 import 'package:tmail_ui_user/features/email/presentation/action/email_ui_action.dart';
 import 'package:tmail_ui_user/features/email/presentation/styles/email_view_app_bar_widget_styles.dart';
 import 'package:tmail_ui_user/features/email/presentation/widgets/email_view_bottom_bar_widget.dart';
+import 'package:tmail_ui_user/features/mailbox/presentation/extensions/presentation_mailbox_extension.dart';
 import 'package:tmail_ui_user/features/manage_account/presentation/extensions/vacation_response_extension.dart';
 import 'package:tmail_ui_user/features/manage_account/presentation/vacation/widgets/vacation_notification_message_widget.dart';
 import 'package:tmail_ui_user/features/thread_detail/domain/state/get_thread_by_id_state.dart';
@@ -38,7 +38,7 @@ class ThreadDetailView extends GetWidget<ThreadDetailController> {
             isSearchRunning: controller.isSearchRunning,
             closeThreadDetailAction: controller.closeThreadDetailAction,
             isThreadDetailEnabled: controller.isThreadDetailEnabled,
-            mailboxContain: _getMailboxContain(),
+            backButtonLabel: _getBackButtonLabel(context),
             threadActionReady: controller.emailsInThreadDetailInfo.isNotEmpty,
             threadDetailIsStarred: controller.threadDetailIsStarred,
             threadDetailCanPermanentlyDelete: controller.threadDetailCanPermanentlyDelete,
@@ -223,12 +223,15 @@ class ThreadDetailView extends GetWidget<ThreadDetailController> {
     }
   }
 
-  PresentationMailbox? _getMailboxContain() {
+  String _getBackButtonLabel(BuildContext context) {
     if (controller.isSearchRunning) {
-      return null;
+      return '';
     }
-
-    return controller.mailboxDashBoardController.selectedMailbox.value;
+    return controller
+      .mailboxDashBoardController
+      .selectedMailbox
+      .value
+      ?.getDisplayName(context) ?? '';
   }
 
   bool showLoadingView(Either<Failure, Success> viewState) {
