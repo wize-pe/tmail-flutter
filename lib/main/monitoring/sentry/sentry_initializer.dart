@@ -1,20 +1,13 @@
 import 'package:core/utils/build_utils.dart';
-import 'package:core/utils/platform_info.dart';
 import 'package:flutter/material.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:tmail_ui_user/main.dart';
 import 'package:tmail_ui_user/main/main_entry.dart';
-import 'package:tmail_ui_user/main/monitoring/sentry_config.dart';
+import 'package:tmail_ui_user/main/monitoring/sentry/sentry_config.dart';
 
 class SentryInitializer {
   /// Initialize Sentry
   static Future<void> init(VoidCallback runAppCallback) async {
-    // Temporarily enabled on web only
-    if (!PlatformInfo.isWeb) {
-      runAppCallback();
-      return;
-    }
-
     final config = await SentryConfig.load();
 
     await SentryFlutter.init(
@@ -43,17 +36,10 @@ class SentryInitializer {
 
   /// Handler executed before sending an event to Sentry
   static Future<SentryEvent?> _beforeSendHandler(SentryEvent event, Hint? hint,) async {
-    // Ignore AssertionError events (common in debug mode)
-    if (BuildUtils.isDebugMode && event.throwable is AssertionError) {
+    // Ignore AssertionError events
+    if (event.throwable is AssertionError) {
       return null;
     }
-
-    // Optional: add your custom filtering or tagging logic here
-    // Example:
-    // event = event.copyWith(tags: {'platform': 'flutter_web'});
-    //
-    // if (event.throwable.toString().contains('TimeoutException')) return null;
-
-    return event; // Keep the event and send it to Sentry
+    return event;
   }
 }
