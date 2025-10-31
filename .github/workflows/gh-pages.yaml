@@ -62,10 +62,13 @@ jobs:
           FOLDER: ${{ github.event.pull_request.number }}
         run: ./scripts/configure-web-environment.sh
 
-      # 🧱 Build Flutter Web (release)
-      - name: Build Web (Release)
+      # 🧱 Build Flutter Web (release + sourcemaps)
+      - name: Build Web (Release + Source Maps)
         env:
           FOLDER: ${{ github.event.pull_request.number }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           echo "=== Disk usage before build ==="
           df -h
@@ -91,7 +94,7 @@ jobs:
           echo "=== Disk usage after cleanup ==="
           df -h
 
-      # 💬 Create or update comments on PR
+      # 💬 Create or update PR comment
       - name: Find deployment comment
         uses: peter-evans/find-comment@v3
         id: fc
