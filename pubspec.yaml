@@ -267,6 +267,8 @@ dependencies:
 
   flutter_custom_tab_bar: 1.2.1
 
+  sentry_flutter: 9.7.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -296,6 +298,8 @@ dev_dependencies:
   patrol_finders: 2.9.0
 
   plugin_platform_interface: 2.1.8
+
+  sentry_dart_plugin: 3.0.0
 
 dependency_overrides:
   firebase_core_platform_interface: 4.8.0
@@ -441,3 +445,10 @@ patrol:
   app_name: Twake Mail
   android:
     package_name: com.linagora.android.teammail
+
+sentry:
+  project: twake-mail-web
+  org: mon-pv
+  upload_sources: false         # Do not upload .dart source files (to avoid exposing source code)
+  upload_source_maps: true      # Upload .map files to display original Dart stack traces on Sentry (only relevant for Flutter Web)
+  upload_debug_symbols: false   # Skip uploading native debug symbols (only needed for Android/iOS)
