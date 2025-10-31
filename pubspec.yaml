@@ -447,8 +447,9 @@ patrol:
     package_name: com.linagora.android.teammail
 
 sentry:
-  project: twake-mail-web
-  org: mon-pv
+  project: twake-mail-web       # Project slug in Sentry
+  org: mon-pv                   # Organization Slug on Sentry
   upload_sources: false         # Do not upload .dart source files (to avoid exposing source code)
   upload_source_maps: true      # Upload .map files to display original Dart stack traces on Sentry (only relevant for Flutter Web)
   upload_debug_symbols: false   # Skip uploading native debug symbols (only needed for Android/iOS)
+  release: 0.1.0                # The release version for source maps, it should match the release set by the SDK. Default: name@version from pubspec (string)

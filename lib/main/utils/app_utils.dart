@@ -33,6 +33,14 @@ class AppUtils {
     );
   }
 
+  static Future<void> loadSentryConfigFileToEnv() async  {
+    try {
+      await dotenv.load(fileName: AppConfig.sentryConfigurationPath);
+    } catch (e) {
+      logError('AppUtils::loadSentryConfigFileToEnv:Exception = $e');
+    }
+  }
+
   static void launchLink(String url, {bool isNewTab = true}) {
     if (PlatformInfo.isWeb && HtmlUtils.isSafariBelow17()) {
       html.window.open(url, isNewTab ? '_blank' : '_self');
