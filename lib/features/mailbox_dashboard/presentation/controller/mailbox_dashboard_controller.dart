@@ -196,6 +196,7 @@ import 'package:tmail_ui_user/main/deep_links/open_app_deep_link_data.dart';
 import 'package:tmail_ui_user/main/error/capability_validator.dart';
 import 'package:tmail_ui_user/main/exceptions/remote_exception.dart';
 import 'package:tmail_ui_user/main/localizations/app_localizations.dart';
+import 'package:tmail_ui_user/main/monitoring/sentry/sentry_manager.dart';
 import 'package:tmail_ui_user/main/routes/app_routes.dart';
 import 'package:tmail_ui_user/main/routes/dialog_router.dart';
 import 'package:tmail_ui_user/main/routes/navigation_router.dart';
@@ -820,6 +821,14 @@ class MailboxDashBoardController extends ReloadableController
     sessionCurrent = session;
     accountId.value = currentAccountId;
     synchronizeOwnEmailAddress(session.getOwnEmailAddressOrEmpty());
+
+    if (PlatformInfo.isWeb) {
+      SentryManager.instance.setUser(
+        email: session.getOwnEmailAddressOrEmpty(),
+        id: currentAccountId.asString,
+        name: session.getUserDisplayName(),
+      );
+    }
 
     _setUpMinInputLengthAutocomplete();
     injectAutoCompleteBindings(session, currentAccountId);
