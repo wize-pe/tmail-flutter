@@ -5345,4 +5345,11 @@ class AppLocalizations {
       name: 'deleteMessage',
     );
   }
+
+  String get emoji {
+    return Intl.message(
+      'Emoji',
+      name: 'emoji',
+    );
+  }
 }

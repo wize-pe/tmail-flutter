@@ -255,6 +255,8 @@ class ImagePaths {
   String get icMessage => _getImagePath('ic_message.svg');
   String get icNavigation => _getImagePath('ic_navigation.svg');
   String get icReading => _getImagePath('ic_reading.svg');
+  String get icEmoji => _getImagePath('ic_emoji.svg');
+  String get icSearchEmojiEmpty => _getImagePath('ic_search_emoji_empty.svg');
 
   String _getImagePath(String imageName) {
     return AssetsPaths.images + imageName;

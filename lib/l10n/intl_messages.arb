@@ -1,5 +1,5 @@
 {
-  "@@last_modified": "2025-10-29T10:59:38.089168",
+  "@@last_modified": "2025-11-03T13:15:47.046616",
   "initializing_data": "Initializing data...",
   "@initializing_data": {
     "type": "text",
@@ -5048,6 +5048,12 @@
   },
   "deleteMessage": "Delete message",
   "@deleteMessage": {
+    "type": "text",
+    "placeholders_order": [],
+    "placeholders": {}
+  },
+  "emoji": "Emoji",
+  "@emoji": {
     "type": "text",
     "placeholders_order": [],
     "placeholders": {}
