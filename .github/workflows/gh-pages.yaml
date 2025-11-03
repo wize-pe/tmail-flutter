@@ -33,9 +33,11 @@ jobs:
           echo "=== Disk space after cleanup ==="
           df -h
 
-      # 🔄 Checkout code
+      # 🔄 Checkout code (⚠️ fetch full history)
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 👈 Needed for Sentry commit history
 
       # 🧰 Setup Flutter
       - name: Setup Flutter
@@ -44,8 +46,8 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: "stable"
           cache: true
-          cache-key: deps-${{ hashFiles('**/pubspec.lock') }} # optional, change this to force refresh cache
-          cache-path: ${{ runner.tool_cache }}/flutter # optional, change this to specify the cache path
+          cache-key: deps-${{ hashFiles('**/pubspec.lock') }}
+          cache-path: ${{ runner.tool_cache }}/flutter
 
       # 🧹 Clean Flutter cache before building
       - name: Flutter clean
@@ -75,6 +77,57 @@ jobs:
           ./scripts/build-web.sh
           echo "=== Disk usage after build ==="
           df -h
+
+      # 🧩 Install sentry-cli
+      - name: Install sentry-cli
+        run: |
+          echo "Installing sentry-cli..."
+          curl -sL https://sentry.io/get-cli/ | bash
+          sentry-cli --version && echo "✅ sentry-cli installed successfully."
+
+      # 🧩 Upload source maps to Sentry (with error handling)
+      - name: Upload source maps to Sentry
+        if: always()
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          set -e  # Stop immediately on error
+          export SENTRY_RELEASE="pr-${{ github.event.pull_request.number }}-${{ github.sha }}"
+          export SENTRY_LOG_LEVEL=info
+
+          echo "🔹 Starting Sentry release upload process..."
+          echo "SENTRY_ORG=$SENTRY_ORG"
+          echo "SENTRY_PROJECT=$SENTRY_PROJECT"
+          echo "SENTRY_RELEASE=$SENTRY_RELEASE"
+
+          try_step() {
+            step_name=$1
+            shift
+            echo "▶️  Running: $step_name"
+            if "$@"; then
+              echo "✅ $step_name completed successfully."
+            else
+              echo "❌ $step_name failed!"
+              exit 1
+            fi
+          }
+
+          try_step "Create Sentry release" \
+            sentry-cli releases new "$SENTRY_RELEASE"
+
+          try_step "Upload sourcemaps" \
+            sentry-cli releases files "$SENTRY_RELEASE" upload-sourcemaps build/web \
+              --rewrite --ignore-missing --url-prefix "~/"
+
+          try_step "Associate commits" \
+            sentry-cli releases set-commits "$SENTRY_RELEASE" --auto --ignore-missing
+
+          try_step "Finalize release" \
+            sentry-cli releases finalize "$SENTRY_RELEASE" --ignore-missing
+
+          echo "🎉 All Sentry steps completed successfully!"
 
       # 🚀 Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
