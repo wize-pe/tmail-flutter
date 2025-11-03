@@ -78,12 +78,14 @@ jobs:
           echo "=== Disk usage after build ==="
           df -h
 
-      # 🧩 Install sentry-cli
+      # 🧩 Install sentry-cli (official binary)
       - name: Install sentry-cli
         run: |
-          echo "Installing sentry-cli..."
-          curl -sL https://sentry.io/get-cli/ | bash
-          sentry-cli --version && echo "✅ sentry-cli installed successfully."
+          echo "⬇️ Downloading sentry-cli binary..."
+          curl -sL https://github.com/getsentry/sentry-cli/releases/latest/download/sentry-cli-Linux-x86_64 -o /usr/local/bin/sentry-cli
+          chmod +x /usr/local/bin/sentry-cli
+          sentry-cli --version
+          echo "✅ sentry-cli installed successfully."
 
       # 🧩 Upload source maps to Sentry (with error handling)
       - name: Upload source maps to Sentry
