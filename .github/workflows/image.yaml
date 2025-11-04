@@ -9,7 +9,6 @@ name: Build Docker images
 
 env:
   FLUTTER_VERSION: 3.32.8
-  XCODE_VERSION: 16.0
 
 jobs:
   build-dev-image:

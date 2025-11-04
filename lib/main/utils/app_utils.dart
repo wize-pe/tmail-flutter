@@ -16,13 +16,13 @@ class AppUtils {
   const AppUtils._();
 
   static Future<void> loadEnvFile() async {
-    await dotenv.load(fileName: AppConfig.envFileName);
+    await loadConfigFromEnv();
     final mapEnvData = Map<String, String>.from(dotenv.env);
    try {
      await loadFcmConfigFileToEnv(currentMapEnvData: mapEnvData);
    } catch (e) {
      logError('AppUtils::loadEnvFile:loadFcmConfigFileToEnv: Exception = $e');
-     await dotenv.load(fileName: AppConfig.envFileName);
+     await loadConfigFromEnv();
    }
   }
 
@@ -31,6 +31,14 @@ class AppUtils {
       fileName: AppConfig.appFCMConfigurationPath,
       mergeWith: currentMapEnvData ?? {}
     );
+  }
+
+  static Future<void> loadConfigFromEnv() async  {
+    try {
+      await dotenv.load(fileName: AppConfig.envFileName);
+    } catch (e) {
+      logError('AppUtils::loadConfigFromEnv:Exception = $e');
+    }
   }
 
   static Future<void> loadSentryConfigFileToEnv() async  {
