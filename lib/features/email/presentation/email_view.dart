@@ -96,7 +96,7 @@ class EmailView extends GetWidget<SingleEmailController> {
                         additionalActions: [],
                         emailIsRead: presentationEmail.hasRead,
                         openBottomSheetContextMenu: controller.mailboxDashBoardController.openBottomSheetContextMenu,
-                        openPopupMenu: controller.mailboxDashBoardController.openPopupMenu,
+                        openPopupMenu: controller.mailboxDashBoardController.openPopupMenuActionGroup,
                       );
                     },
                     supportBackAction: !isInsideThreadDetailView,
@@ -281,7 +281,7 @@ class EmailView extends GetWidget<SingleEmailController> {
             ],
             emailIsRead: presentationEmail.hasRead,
             openBottomSheetContextMenu: controller.mailboxDashBoardController.openBottomSheetContextMenu,
-            openPopupMenu: controller.mailboxDashBoardController.openPopupMenu,
+            openPopupMenu: controller.mailboxDashBoardController.openPopupMenuActionGroup,
           ),
           onToggleThreadDetailCollapseExpand: onToggleThreadDetailCollapseExpand,
           mailboxContain: presentationEmail.findMailboxContain(
