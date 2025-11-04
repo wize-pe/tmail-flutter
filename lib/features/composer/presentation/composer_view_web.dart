@@ -512,6 +512,7 @@ class ComposerView extends GetWidget<ComposerController> {
                         ),
                         Obx(() => BottomBarComposerWidget(
                           imagePaths: controller.imagePaths,
+                          responsiveUtils: controller.responsiveUtils,
                           isCodeViewEnabled: controller.richTextWebController!.codeViewEnabled,
                           isFormattingOptionsEnabled: controller.richTextWebController!.isFormattingOptionsEnabled,
                           hasReadReceipt: controller.hasRequestReadReceipt.value,
@@ -532,6 +533,7 @@ class ComposerView extends GetWidget<ComposerController> {
                           saveAsTemplateAction: () => controller.handleClickSaveAsTemplateButton(context),
                           onEmojiSelected: controller.insertEmojiToEditor,
                           onPickerOpen: controller.handleOpenEmojiPicker,
+                          onRecentEmojiSelected: controller.getRecentReactions,
                         )),
                       ],
                     ),
@@ -781,6 +783,7 @@ class ComposerView extends GetWidget<ComposerController> {
                         ),
                         Obx(() => BottomBarComposerWidget(
                           imagePaths: controller.imagePaths,
+                          responsiveUtils: controller.responsiveUtils,
                           isCodeViewEnabled: controller.richTextWebController!.codeViewEnabled,
                           isFormattingOptionsEnabled: controller.richTextWebController!.isFormattingOptionsEnabled,
                           hasReadReceipt: controller.hasRequestReadReceipt.value,
@@ -801,6 +804,7 @@ class ComposerView extends GetWidget<ComposerController> {
                           saveAsTemplateAction: () => controller.handleClickSaveAsTemplateButton(context),
                           onEmojiSelected: controller.insertEmojiToEditor,
                           onPickerOpen: controller.handleOpenEmojiPicker,
+                          onRecentEmojiSelected: controller.getRecentReactions,
                         )),
                       ],
                     ),
